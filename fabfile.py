@@ -4,6 +4,11 @@ from fabric.api import env, local, run
 REPO_URL = 'https://github.com/starryrbs/hexo-blog.git'
 
 PROJECT_NAME = 'hexo-blog'
+env.user = 'root'
+env.password = 'Fanxun01!'
+env.sudo_password = env.password
+env.hosts = ['192.168.1.242']
+env.port = 22
 
 
 def remote_exist(file_path):
@@ -43,8 +48,7 @@ def _get_latest_source(source_folder):
 
 
 def _run_hexo_command(site_folder):
-    run(f'cd {site_folder}')
-    run(f'hexo clean&&hexo g&&hexo d')
+    run(f'cd /projects/hexo && hexo clean && hexo g && hexo d')
 
 
 def remove_readme(source_folder):
