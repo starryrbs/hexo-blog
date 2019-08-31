@@ -1,16 +1,28 @@
-import random
-
 from fabric.contrib.files import append, exists, sed
 from fabric.api import env, local, run
 
-REPO_URL = 'https://github.com/starryrbs/django_test.git'
+REPO_URL = 'https://github.com/starryrbs/hexo-blog.git'
 
-PROJECT_NAME = 'django_test'
+PROJECT_NAME = 'hexo-blog'
 
 
-def _create_directory_structure_if_necessary(site_folder):
-    for subfolder in ('database', 'static', 'virtualenv', 'source'):
-        run(f'mkdir -p {site_folder}/{subfolder}')
+def remote_exist(file_path):
+    """
+
+    判断远端文件是否存在
+
+    :return: 布尔值
+
+    """
+
+    if int(run(" [ -e " + file_path + " ] && echo 11 || echo 10")) == 11:
+        return True
+    else:
+        return False
+
+
+def _create_directory_structure_if_necessary(source_folder):
+    run(f'mkdir -p {source_folder}')
 
 
 def _get_latest_source(source_folder):
@@ -29,47 +41,21 @@ def _get_latest_source(source_folder):
     run(f'cd {source_folder} && git reset --hard {current_commit}')
 
 
-def _update_settings(source_folder, site_name):
-    settings_path = source_folder + f'/{PROJECT_NAME}/settings.py'
-    # sed 函数的作用是在文件中替换字符串
-    sed(settings_path, 'DEBUG = True', "DEBUG = False")
-    # sed 调整 ALLOWED_HOSTS 的值，使用正则表达式匹配正确的代码行。
-    sed(settings_path, 'ALLOWED_HOSTS = .+$', f'ALLOWED_HOSTS = ["{site_name}"]')
-    secret_key_file = source_folder + f'/{PROJECT_NAME}/secret_key.py'
-    if not exists(secret_key_file):
-        chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)'
-        key = ''.join(random.SystemRandom().choice(chars) for _ in range(50))
-        # append 的作用是在文件末尾添加一行内容。（
-        append(secret_key_file, f'SECRET_KEY = "{key}"')
+def _run_hexo_command(site_folder):
+    run(f'cd {site_folder}')
+    run(f'hexo clean&&hexo g&&hexo d')
 
 
-def _update_virtualenv(source_folder):
-    virtualenv_folder = source_folder + '/../virtualenv'
-    if not exists(virtualenv_folder + '/bin/pip'):
-        run(f'python3 -m venv {virtualenv_folder}')
-    run(
-        f'{virtualenv_folder}/bin/pip install -r {source_folder}/requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple')
-
-
-def _update_static_files(source_folder):
-    run(f'cd {source_folder}'
-        ' && ../virtualenv/bin/python manage.py collectstatic --noinput'
-        )
-
-
-def _run_server(source_folder):
-    run(f'cd {source_folder}'
-        ' && nohup ../virtualenv/bin/python manage.py runserver 0.0.0.0:12345 &'
-        )
-
-
-# 1. 
-
-def test():
-    run(f'dir')
+def remove_readme(source_folder):
+    readme_file_path = f'{source_folder}/README.md'
+    remote_exist(readme_file_path)
+    run(f'rm -rf {readme_file_path}')
 
 
 def deploy():
-    site_folder = f'/home/sites'
-    source_folder = site_folder + '/source'
-    test()
+    site_folder = f'/projects/hexo'
+    source_folder = site_folder + '/source/_posts'
+    _create_directory_structure_if_necessary(source_folder)
+    _get_latest_source(source_folder)
+    remove_readme(source_folder)
+    _run_hexo_command(site_folder)
