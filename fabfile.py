@@ -48,7 +48,7 @@ def _get_latest_source(source_folder):
 
 
 def _run_hexo_command(site_folder):
-    run(f'cd /projects/hexo && hexo clean && hexo g && hexo d')
+    run(f'cd /projects/hexo && hexo clean && hexo g && hexo d', timeout=15)
 
 
 def remove_readme(source_folder):
