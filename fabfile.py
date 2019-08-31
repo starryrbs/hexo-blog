@@ -22,7 +22,8 @@ def remote_exist(file_path):
 
 
 def _create_directory_structure_if_necessary(source_folder):
-    run(f'mkdir -p {source_folder}')
+    if not remote_exist(source_folder):
+        run(f'mkdir -p {source_folder}')
 
 
 def _get_latest_source(source_folder):
@@ -48,13 +49,13 @@ def _run_hexo_command(site_folder):
 
 def remove_readme(source_folder):
     readme_file_path = f'{source_folder}/README.md'
-    remote_exist(readme_file_path)
-    run(f'rm -rf {readme_file_path}')
+    if remote_exist(readme_file_path):
+        run(f'rm -rf {readme_file_path}')
 
 
 def deploy():
     site_folder = f'/projects/hexo'
-    source_folder = site_folder + '/source/_posts'
+    source_folder = site_folder + f'/source/_posts/{PROJECT_NAME}/'
     _create_directory_structure_if_necessary(source_folder)
     _get_latest_source(source_folder)
     remove_readme(source_folder)
