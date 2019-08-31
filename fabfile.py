@@ -3,7 +3,7 @@ from fabric.api import env, local, run
 
 REPO_URL = 'https://github.com/starryrbs/hexo-blog.git'
 
-PROJECT_NAME = 'hexo-blog' 
+PROJECT_NAME = 'hexo-blog'
 env.user = 'root'
 env.password = 'Fanxun01!'
 env.sudo_password = env.password
